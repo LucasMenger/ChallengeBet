@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  sqledge:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: sqledge
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Challenge2025@Bet" 
+    volumes:
+      - ./_data/mssql:/var/opt/mssql
+    restart: unless-stopped
