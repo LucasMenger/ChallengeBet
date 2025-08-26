@@ -1,8 +1,11 @@
+using System.Reflection;
 using System.Text;
 using ChallengeBet.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,13 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services
+    .AddControllers()
+    .AddFluentValidation(config =>
+    {
+        config.RegisterValidatorsFromAssemblyContaining<Program>();
+    });builder.Services.AddValidatorsFromAssembly(Assembly.Load("ChallengeBet.Application"));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
