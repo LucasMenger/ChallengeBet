@@ -1,5 +1,8 @@
+using System.Text;
 using ChallengeBet.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,24 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
         sql => sql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
     )
 );
+
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-change-me";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "ChallengeBet";
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
