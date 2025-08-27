@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\ChallengeBet.Application\ChallengeBet.Application.csproj" />
     <ProjectReference Include="..\ChallengeBet.Domain\ChallengeBet.Domain.csproj" />
   </ItemGroup>
 
@@ -17,6 +18,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
 </Project>
