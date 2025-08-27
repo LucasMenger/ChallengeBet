@@ -8,6 +8,10 @@
     <PackageReference Include="FluentValidation" Version="11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Players\Dtos\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
