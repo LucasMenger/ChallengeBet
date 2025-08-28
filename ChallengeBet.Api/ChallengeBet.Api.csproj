@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ChallengeBet.Application\ChallengeBet.Application.csproj" />
     <ProjectReference Include="..\ChallengeBet.Infrastructure\ChallengeBet.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="WeatherForecast.cs" />
+    <Compile Remove="Controllers\WeatherForecastController.cs" />
   </ItemGroup>
 
 </Project>
