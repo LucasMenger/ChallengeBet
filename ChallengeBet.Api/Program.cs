@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddSecurity();
 builder.AddDataContexts();
 builder.AddServices();
-
+builder.AddCrossOrigin();
 builder.Services.AddAuthorization();
 
 builder.Services
@@ -23,6 +23,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseCors(ApiConfiguration.CorsPolicyName);
+app.UseAuthentication();
+app.UseAuthorization();
 app.ConfigureDevEnvironment();
 
 app.UseHttpsRedirection();

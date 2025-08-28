@@ -32,6 +32,18 @@ public static class BuilderExtension
             });
     }
 
+    public static void AddCrossOrigin(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddCors(options =>
+            options.AddPolicy(
+                ApiConfiguration.CorsPolicyName,
+                policy => policy
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+            ));
+    }
+
     public static void AddDataContexts(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<AppDbContext>(opt =>
