@@ -21,7 +21,7 @@ public class ConcurrencyTests
         db.AddRange(player, wallet, new PlayerPoints{ PlayerId = player.Id, Points = 0 });
         await db.SaveChangesAsync();
 
-        var betSvc = new BetService(db, new RtpConfig(new ConfigurationBuilder().Build()), new RandomProvider());
+        var betSvc = new BetService(db, new RtpConfig(new ConfigurationBuilder().Build()), new RandomProvider(),null);
 
         var req = new PlaceBetRequest { Amount = 10m, Multiplier = 2m, AutoSettle=false };
         var tasks = Enumerable.Range(0, 20).Select(_ => betSvc.PlaceBetAsync(player.Id, req, default)).ToList();

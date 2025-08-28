@@ -1,3 +1,4 @@
+using ChallengeBet.Application;                  // PagedResult<>
 using ChallengeBet.Application.Abstractions;
 using ChallengeBet.Application.Bets;
 using ChallengeBet.Application.Bets.Dtos;
@@ -10,10 +11,12 @@ namespace ChallengeBet.Infrastructure.Services;
 public class BetService(
     AppDbContext db,
     IRtpConfig rtpCfg,
-    IRandomProvider rng
+    IRandomProvider rng,
+    IWalletNotifier notifier
 ) : IBetService
 {
     private const int MaxRetries = 3;
+    private readonly IWalletNotifier _notifier = notifier;
 
     public async Task<BetDto> PlaceBetAsync(long playerId, PlaceBetRequest req, CancellationToken ct)
     {
@@ -28,9 +31,12 @@ public class BetService(
                 var wallet = await db.Wallets.FirstOrDefaultAsync(w => w.PlayerId == playerId, ct)
                     ?? throw new AppException("Carteira não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.WALLET_NOT_FOUND);
 
-                if (req.Amount < 1.00m) throw new AppException("Valor mínimo da aposta é R$ 1,00.", System.Net.HttpStatusCode.BadRequest, ErrorCodes.MIN_BET_NOT_MET);
-                if (wallet.Balance < req.Amount) throw new AppException("Saldo insuficiente.", System.Net.HttpStatusCode.UnprocessableEntity, ErrorCodes.INSUFFICIENT_FUNDS);
+                if (req.Amount < 1.00m)
+                    throw new AppException("Valor mínimo da aposta é R$ 1,00.", System.Net.HttpStatusCode.BadRequest, ErrorCodes.MIN_BET_NOT_MET);
 
+                if (wallet.Balance < req.Amount)
+                    throw new AppException("Saldo insuficiente.", System.Net.HttpStatusCode.UnprocessableEntity, ErrorCodes.INSUFFICIENT_FUNDS);
+                
                 wallet.Balance -= req.Amount;
 
                 var bet = new Bet
@@ -46,7 +52,7 @@ public class BetService(
                 {
                     WalletId = wallet.Id,
                     PlayerId = playerId,
-                    BetId = null, 
+                    BetId = null,
                     Type = Enums.TransactionType.BetDebit,
                     Value = req.Amount
                 });
@@ -57,7 +63,8 @@ public class BetService(
                     .Where(t => t.PlayerId == playerId && t.Type == Enums.TransactionType.BetDebit)
                     .OrderByDescending(t => t.Id)
                     .FirstOrDefaultAsync(ct);
-                if (lastDebit != null && lastDebit.BetId is null)
+
+                if (lastDebit is { BetId: null })
                 {
                     lastDebit.BetId = bet.Id;
                     await db.SaveChangesAsync(ct);
@@ -69,6 +76,8 @@ public class BetService(
                 }
 
                 await tx.CommitAsync(ct);
+
+                await _notifier.NotifyBalanceChanged(playerId, wallet.Balance, ct);
 
                 return new BetDto
                 {
@@ -85,7 +94,7 @@ public class BetService(
             {
                 await tx.RollbackAsync(ct);
                 await Task.Delay(25 * attempt, ct);
-                db.ChangeTracker.Clear(); 
+                db.ChangeTracker.Clear();
                 continue;
             }
         }
@@ -95,10 +104,10 @@ public class BetService(
     {
         var rtp = rtpCfg.GetRtp();
         var p = (double)(rtp / bet.Multiplier);
-        if (p < 0) p = 0; if (p > 1) p = 1;
+        if (p < 0) p = 0;
+        if (p > 1) p = 1;
 
-        var u = rng.NextUnitDouble();
-        var win = u < p;
+        var win = rng.NextUnitDouble() < p;
 
         if (win)
         {
@@ -131,12 +140,16 @@ public class BetService(
                 await db.SaveChangesAsync(ct);
             }
 
-            pp.Points += (long)decimal.Truncate(bet.Amount); 
+            pp.Points += (long)decimal.Truncate(bet.Amount);
 
-            var rules = await db.BonusRules.AsNoTracking().OrderBy(r => r.PointsThreshold).ToListAsync(ct);
+            var rules = await db.BonusRules.AsNoTracking()
+                            .OrderBy(r => r.PointsThreshold)
+                            .ToListAsync(ct);
+
             var claimedIds = await db.BonusClaims.AsNoTracking()
                                 .Where(c => c.PlayerId == playerId)
-                                .Select(c => c.RuleId).ToListAsync(ct);
+                                .Select(c => c.RuleId)
+                                .ToListAsync(ct);
 
             foreach (var r in rules)
             {
@@ -170,6 +183,7 @@ public class BetService(
             {
                 var bet = await db.Bets.FirstOrDefaultAsync(b => b.Id == betId && b.PlayerId == playerId, ct)
                           ?? throw new AppException("Aposta não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.BET_NOT_FOUND);
+
                 if (bet.Status != Enums.BetStatus.Pending)
                     throw new AppException("Só é possível cancelar apostas pendentes.", System.Net.HttpStatusCode.Conflict, ErrorCodes.BET_NOT_PENDING);
 
@@ -191,6 +205,8 @@ public class BetService(
 
                 await db.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
+
+                await _notifier.NotifyBalanceChanged(playerId, wallet.Balance, ct);
 
                 return new BetDto
                 {

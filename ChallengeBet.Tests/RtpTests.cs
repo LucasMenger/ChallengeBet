@@ -30,7 +30,7 @@ public class RtpTests
         }).Build();
 
         var rng = new FakeRng(Enumerable.Range(0,1000).Select(i => i/1000.0).ToArray());
-        var betSvc = new BetService(db, new RtpConfig(cfg), rng);
+        var betSvc = new BetService(db, new RtpConfig(cfg), rng, null);
 
         decimal totalBet = 0, totalReturn = 0;
         for (int i=0;i<1000;i++)

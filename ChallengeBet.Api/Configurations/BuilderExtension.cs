@@ -1,4 +1,5 @@
 using System.Text;
+using ChallengeBet.Api.Hubs;
 using ChallengeBet.Application.Abstractions;
 using ChallengeBet.Application.Bets;
 using ChallengeBet.Application.Players;
@@ -65,6 +66,8 @@ public static class BuilderExtension
         builder.Services.AddScoped<IBetService, BetService>();
         builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
         builder.Services.AddSingleton<IRtpConfig, RtpConfig>();
+        builder.Services.AddScoped<IWalletNotifier, SignalRWalletNotifier>();
+
     }
     
 }

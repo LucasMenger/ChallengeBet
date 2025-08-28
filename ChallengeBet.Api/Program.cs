@@ -1,6 +1,7 @@
 using System.Reflection;
 using ChallengeBet.Api.Configurations;
 using ChallengeBet.Api.Configurations.Errors;
+using ChallengeBet.Api.Hubs;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -21,10 +22,11 @@ builder.Services
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
+app.MapHub<WalletHub>("/hubs/wallet");
 app.UseCors(ApiConfiguration.CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

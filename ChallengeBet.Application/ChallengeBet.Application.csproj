@@ -9,6 +9,10 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Class1.cs" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
