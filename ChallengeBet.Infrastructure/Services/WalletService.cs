@@ -10,7 +10,7 @@ public class WalletService(AppDbContext db) : IWalletService
     public async Task<WalletDto> GetMyWalletAsync(long playerId, CancellationToken ct)
     {
         var w = await db.Wallets.AsNoTracking().FirstOrDefaultAsync(x => x.PlayerId == playerId, ct)
-                ?? throw new InvalidOperationException("Carteira não encontrada.");
+                ?? throw new AppException("Carteira não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.WALLET_NOT_FOUND);
         return new WalletDto { Balance = w.Balance, Currency = w.Currency };
     }
 

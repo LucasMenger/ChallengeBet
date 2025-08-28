@@ -1,4 +1,5 @@
 using ChallengeBet.Application.Abstractions;
+using ChallengeBet.Application.Common;
 using ChallengeBet.Application.Players;
 using ChallengeBet.Application.Players.Dtos;
 using ChallengeBet.Domain.Entities;
@@ -17,7 +18,7 @@ public class PlayerService(
     {
         var email = req.Email.Trim().ToLower();
         if (await db.Players.AsNoTracking().AnyAsync(p => p.Email == email, ct))
-            throw new InvalidOperationException("E-mail já cadastrado.");
+            throw new AppException("E-mail já cadastrado.", System.Net.HttpStatusCode.Conflict, ErrorCodes.EMAIL_ALREADY_EXISTS);
 
         var player = new Player
         {
@@ -53,11 +54,11 @@ public class PlayerService(
             .FirstOrDefaultAsync(p => p.Email == req.Email.ToLower(), ct);
 
         if (player is null)
-            throw new InvalidOperationException("Credenciais inválidas.");
+            throw new AppException("Credenciais inválidas.", System.Net.HttpStatusCode.Unauthorized, ErrorCodes.INVALID_CREDENTIALS);
 
         var result = hasher.VerifyHashedPassword(player, player.PasswordHash, req.Password);
         if (result == PasswordVerificationResult.Failed)
-            throw new InvalidOperationException("Credenciais inválidas.");
+            throw new AppException("Credenciais inválidas.", System.Net.HttpStatusCode.Unauthorized, ErrorCodes.INVALID_CREDENTIALS);
 
         var token = tokenSvc.GenerateToken(player);
 

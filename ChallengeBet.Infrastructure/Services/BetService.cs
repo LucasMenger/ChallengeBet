@@ -26,10 +26,10 @@ public class BetService(
             try
             {
                 var wallet = await db.Wallets.FirstOrDefaultAsync(w => w.PlayerId == playerId, ct)
-                    ?? throw new InvalidOperationException("Carteira não encontrada.");
+                    ?? throw new AppException("Carteira não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.WALLET_NOT_FOUND);
 
-                if (req.Amount < 1.00m) throw new InvalidOperationException("Valor mínimo da aposta é R$ 1,00.");
-                if (wallet.Balance < req.Amount) throw new InvalidOperationException("Saldo insuficiente.");
+                if (req.Amount < 1.00m) throw new AppException("Valor mínimo da aposta é R$ 1,00.", System.Net.HttpStatusCode.BadRequest, ErrorCodes.MIN_BET_NOT_MET);
+                if (wallet.Balance < req.Amount) throw new AppException("Saldo insuficiente.", System.Net.HttpStatusCode.UnprocessableEntity, ErrorCodes.INSUFFICIENT_FUNDS);
 
                 wallet.Balance -= req.Amount;
 
@@ -169,12 +169,12 @@ public class BetService(
             try
             {
                 var bet = await db.Bets.FirstOrDefaultAsync(b => b.Id == betId && b.PlayerId == playerId, ct)
-                          ?? throw new InvalidOperationException("Aposta não encontrada.");
+                          ?? throw new AppException("Aposta não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.BET_NOT_FOUND);
                 if (bet.Status != Enums.BetStatus.Pending)
-                    throw new InvalidOperationException("Só é possível cancelar apostas pendentes.");
+                    throw new AppException("Só é possível cancelar apostas pendentes.", System.Net.HttpStatusCode.Conflict, ErrorCodes.BET_NOT_PENDING);
 
                 var wallet = await db.Wallets.FirstOrDefaultAsync(w => w.PlayerId == playerId, ct)
-                             ?? throw new InvalidOperationException("Carteira não encontrada.");
+                             ?? throw new AppException("Carteira não encontrada.", System.Net.HttpStatusCode.NotFound, ErrorCodes.WALLET_NOT_FOUND);
 
                 wallet.Balance += bet.Amount;
                 bet.Status = Enums.BetStatus.Cancelled;

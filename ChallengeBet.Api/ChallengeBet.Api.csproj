@@ -25,6 +25,8 @@
   <ItemGroup>
     <Compile Remove="WeatherForecast.cs" />
     <Compile Remove="Controllers\WeatherForecastController.cs" />
+    <Compile Remove="Configurations\AppException.cs" />
+    <Compile Remove="Configurations\ErrorCodes.cs" />
   </ItemGroup>
 
 </Project>

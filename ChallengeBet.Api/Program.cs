@@ -1,5 +1,6 @@
 using System.Reflection;
 using ChallengeBet.Api.Configurations;
+using ChallengeBet.Api.Configurations.Errors;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -22,6 +23,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors(ApiConfiguration.CorsPolicyName);
 app.UseAuthentication();

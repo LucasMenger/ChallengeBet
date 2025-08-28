@@ -1,6 +1,8 @@
 using System.Text;
 using ChallengeBet.Application.Abstractions;
+using ChallengeBet.Application.Bets;
 using ChallengeBet.Application.Players;
+using ChallengeBet.Application.Wallets;
 using ChallengeBet.Domain.Entities;
 using ChallengeBet.Infrastructure;
 using ChallengeBet.Infrastructure.Services;
@@ -59,6 +61,10 @@ public static class BuilderExtension
         builder.Services.AddSingleton<IPasswordHasher<Player>, PasswordHasher<Player>>();
         builder.Services.AddScoped<ITokenService, JwtTokenService>();
         builder.Services.AddScoped<IPlayerService, PlayerService>();
+        builder.Services.AddScoped<IWalletService, WalletService>();
+        builder.Services.AddScoped<IBetService, BetService>();
+        builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
+        builder.Services.AddSingleton<IRtpConfig, RtpConfig>();
     }
     
 }
