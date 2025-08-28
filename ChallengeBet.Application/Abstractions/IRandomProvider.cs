@@ -1,6 +1,6 @@
 namespace ChallengeBet.Application.Abstractions;
 
-public class IRandomProvider
+public interface IRandomProvider
 {
-    
+    double NextUnitDouble(); // [0,1)
 }

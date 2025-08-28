@@ -15,14 +15,14 @@ public class PlayerService(
 {
     public async Task<(PlayerDto player, WalletDto wallet)> RegisterAsync(RegisterPlayerRequest req, CancellationToken ct)
     {
-        var emailExists = await db.Players.AnyAsync(p => p.Email == req.Email, ct);
-        if (emailExists)
+        var email = req.Email.Trim().ToLower();
+        if (await db.Players.AsNoTracking().AnyAsync(p => p.Email == email, ct))
             throw new InvalidOperationException("E-mail já cadastrado.");
 
         var player = new Player
         {
             Name = req.Name.Trim(),
-            Email = req.Email.Trim().ToLower()
+            Email = email
         };
         player.PasswordHash = hasher.HashPassword(player, req.Password);
 
@@ -35,14 +35,17 @@ public class PlayerService(
 
         db.Players.Add(player);
         db.Wallets.Add(wallet);
-        db.PlayerPoints.Add(new PlayerPoints { PlayerId = player.Id, Points = 0 });
-
         await db.SaveChangesAsync(ct);
 
-        return (new PlayerDto { Id = player.Id, Name = player.Name, Email = player.Email },
-                new WalletDto { Balance = wallet.Balance, Currency = wallet.Currency });
-    }
+        db.PlayerPoints.Add(new PlayerPoints { PlayerId = player.Id, Points = 0 });
+        await db.SaveChangesAsync(ct);
 
+        return (
+            new PlayerDto { Id = player.Id, Name = player.Name, Email = player.Email },
+            new WalletDto { Balance = wallet.Balance, Currency = wallet.Currency }
+        );
+    }
+    
     public async Task<AuthResponse> LoginAsync(LoginRequest req, CancellationToken ct)
     {
         var player = await db.Players

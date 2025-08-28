@@ -1,6 +1,7 @@
 namespace ChallengeBet.Application.Abstractions;
 
-public class IRtpConfig
+public interface IRtpConfig
 {
-    
+    decimal GetRtp();               
+    decimal GetDefaultMultiplier(); 
 }
